@@ -1,0 +1,66 @@
+name: Remote Staging Workflow
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - staging
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Create Environment File
+        run: |
+          echo "FLASK_ENV=${{ secrets.FLASK_ENV }}" >> staging.env
+          echo "FLASK_DEBUG=${{ secrets.FLASK_DEBUG }}" >> staging.env
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> staging.env
+          echo "SQLALCHEMY_DATABASE_URI=${{ secrets.SQLALCHEMY_DATABASE_URI }}" >> staging.env
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> staging.env
+          echo "INITIAL_INSTRUCTION_V2=${{ secrets.INITIAL_INSTRUCTION_V2 }}" >> staging.env
+          echo "LAST_INSTRUCTION_V2=${{ secrets.LAST_INSTRUCTION_V2 }}" >> staging.env
+          echo "THE_IMAGE_GENERATION_STARTING_INSTRUCTION_V2=${{ secrets.THE_IMAGE_GENERATION_STARTING_INSTRUCTION_V2 }}" >> staging.env
+          echo "THE_IMAGE_GENERATION_ENDING_INSTRUCTION_V2=${{ secrets.THE_IMAGE_GENERATION_ENDING_INSTRUCTION_V2 }}" >> staging.env
+
+      - name: Build Docker Image
+        run: docker build -f dockerfiles/remote-staging.dockerfile -t ${{secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_PROJECT_NAME }}:remote-stage-${{ secrets.DOCKER_PROJECT_VERSION }} .
+
+      - name: Push image to docker hub
+        run: docker push ${{secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_PROJECT_NAME }}:remote-stage-${{ secrets.DOCKER_PROJECT_VERSION }}
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Pull image from docker hub
+        run: docker pull ${{secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_PROJECT_NAME }}:remote-stage-${{ secrets.DOCKER_PROJECT_VERSION }}
+
+      - name: Delete old container
+        run: docker rm -f ${{ secrets.DOCKER_PROJECT_NAME }}
+
+      - name: Run Docker Container
+        run: |
+          docker run -d \
+          -p 5007:5000 \
+          --name ${{ secrets.DOCKER_PROJECT_NAME }} \
+          ${{secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_PROJECT_NAME }}:remote-stage-${{ secrets.DOCKER_PROJECT_VERSION }}          

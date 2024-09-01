@@ -1,0 +1,12 @@
+echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> staging.env
+
+
+echo "FLASK_ENV=${{ secrets.FLASK_ENV }}" >> staging.env
+echo "FLASK_DEBUG=${{ secrets.FLASK_DEBUG }}" >> staging.env
+echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> staging.env
+echo "SQLALCHEMY_DATABASE_URI=${{ secrets.SQLALCHEMY_DATABASE_URI }}" >> staging.env
+echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> staging.env
+echo "INITIAL_INSTRUCTION_V2=${{ secrets.INITIAL_INSTRUCTION_V2 }}" >> staging.env
+echo "LAST_INSTRUCTION_V2=${{ secrets.LAST_INSTRUCTION_V2 }}" >> staging.env
+echo "THE_IMAGE_GENERATION_STARTING_INSTRUCTION_V2=${{ secrets.THE_IMAGE_GENERATION_STARTING_INSTRUCTION_V2 }}" >> staging.env
+echo "THE_IMAGE_GENERATION_ENDING_INSTRUCTION_V2=${{ secrets.THE_IMAGE_GENERATION_ENDING_INSTRUCTION_V2 }}" >> staging.env

@@ -1,0 +1,19 @@
+# Activate flask virtual environment
+.\venv\Scripts\Activate
+
+
+# Error running venv
+This error occurs because the PowerShell execution policy is set to restrict the running of scripts. You can change the execution policy to allow the script to run. Here are the steps to do that:
+
+1. Open PowerShell as an administrator.
+2. Run the following command to change the execution policy:
+Set-ExecutionPolicy RemoteSigned
+
+If you want to revert the execution policy to its default setting after activating the virtual environment, you can run:
+Set-ExecutionPolicy Restricted
+
+
+# Migrations
+flask db init
+flask db migrate -m "Initial migration."
+flask db upgrade
